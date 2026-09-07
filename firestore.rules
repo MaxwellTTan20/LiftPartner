@@ -1,0 +1,18 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid} {
+      // Any signed-in user can read profile docs (name, selfie URL, goal,
+      // frequency, and the rolled-up currentMonthKey/currentMonthScores
+      // fields) so the leaderboard can show everyone's model + name. Only
+      // the owner can write their own profile. Actual workouts (exercises,
+      // sets, weights, comments) stay fully private below.
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == uid;
+
+      match /workouts/{workoutId} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+  }
+}
